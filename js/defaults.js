@@ -1,16 +1,24 @@
-/* Entry shape: { title, src, credit? }. credit is printed at the bottom of the poster. */
+/* Each image lives in assets/defaults as <name>.webp plus a <name>-thumb.webp (240x320) for the grid.
+   credit is optional and printed at the bottom of the poster. */
+const defaultImage = (title, name, credit = "") => ({
+  title,
+  src: `assets/defaults/${name}.webp`,
+  thumb: `assets/defaults/${name}-thumb.webp`,
+  credit,
+});
+
 const DEFAULT_IMAGES = [
-  { title: "Stone bridge at dawn", src: "assets/defaults/stone-bridge.webp" },
-  { title: "Painting", src: "assets/defaults/painting-01.jpg" },
-  { title: "Meadow hike", src: "assets/defaults/meadow-hike.jpg" },
-  { title: "Radiant figure", src: "assets/defaults/radiant-figure.jpg" },
-  { title: "Ancient tower", src: "assets/defaults/ancient-tower.jpg" },
-  { title: "Golden peaks", src: "assets/defaults/golden-peaks.jpg" },
-  { title: "Skybeam", src: "assets/defaults/skybeam.jpg" },
-  { title: "Canyon valley", src: "assets/defaults/canyon-valley.jpg" },
-  { title: "Forest sunset", src: "assets/defaults/forest-sunset.jpg" },
-  { title: "Cliff summit", src: "assets/defaults/cliff-summit.jpg" },
-  { title: "Golden plains", src: "assets/defaults/golden-plains.jpg" },
-  { title: "Misty canyon", src: "assets/defaults/misty-canyon.jpg" },
-  { title: "River valley", src: "assets/defaults/river-valley.jpg" },
+  defaultImage("Stone bridge at dawn", "stone-bridge"),
+  defaultImage("Painting", "painting-01"),
+  defaultImage("Meadow hike", "meadow-hike"),
+  defaultImage("Radiant figure", "radiant-figure"),
+  defaultImage("Ancient tower", "ancient-tower"),
+  defaultImage("Golden peaks", "golden-peaks"),
+  defaultImage("Skybeam", "skybeam"),
+  defaultImage("Canyon valley", "canyon-valley"),
+  defaultImage("Forest sunset", "forest-sunset"),
+  defaultImage("Cliff summit", "cliff-summit"),
+  defaultImage("Golden plains", "golden-plains"),
+  defaultImage("Misty canyon", "misty-canyon"),
+  defaultImage("River valley", "river-valley"),
 ];

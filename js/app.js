@@ -218,7 +218,7 @@ function renderDefaults() {
   $("defaultsEmpty").hidden = DEFAULT_IMAGES.length > 0;
   $("thumbs").innerHTML = DEFAULT_IMAGES.map((item, i) => `
     <button class="thumb" type="button" data-i="${i}" aria-pressed="false" title="${escapeHtml(item.title)}">
-      <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.title)}" loading="lazy">
+      <img src="${escapeHtml(item.thumb || item.src)}" alt="${escapeHtml(item.title)}" loading="lazy">
     </button>`).join("");
 }
 
