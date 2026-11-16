@@ -94,10 +94,15 @@
           <div class="row spread">
             <button class="btn ghost" id="example" type="button">Try another example</button>
             <div class="seg" id="pos" role="group" aria-label="Text position">
-              <button type="button" data-v="bottom" aria-pressed="true">Bottom</button>
               <button type="button" data-v="top" aria-pressed="false">Top</button>
+              <button type="button" data-v="middle" aria-pressed="false">Middle</button>
+              <button type="button" data-v="bottom" aria-pressed="true">Bottom</button>
             </div>
           </div>
+          <label class="slider">
+            <span class="slider-head">Text size <output id="textSizeOut">100%</output></span>
+            <input id="textSize" type="range" min="60" max="160" value="100">
+          </label>
         </section>
 
         <section class="step" aria-labelledby="h-style">
@@ -107,7 +112,7 @@
             <input id="dim" type="range" min="0" max="100" value="70">
           </label>
           <label class="slider">
-            <span class="slider-head">Zoom <output id="zoomOut">100%</output></span>
+            <span class="slider-head">Image zoom <output id="zoomOut">100%</output></span>
             <input id="zoom" type="range" min="100" max="250" value="100">
           </label>
           <div class="row">

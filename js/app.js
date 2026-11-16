@@ -13,10 +13,12 @@ const EXAMPLES = [
 ];
 const COLORS = { bg: "#0c0a09", text: "#f8f4f0" };
 const LOGO_RATIO = 15 / 104;
+const TEXT_Y = { top: 0.13, middle: 0.5, bottom: 0.85 }; // vertical center of the text block, as a fraction of the height
 
 const state = {
   fmt: "story",
   pos: "bottom",
+  textScale: 1,
   dim: 0.7,
   zoom: 1,
   ox: 0,         // image offset, -1 to 1 of the available slack
@@ -103,19 +105,26 @@ function drawImage(img, W, H) {
 }
 
 function drawShade(W, H) {
-  const atBottom = state.pos === "bottom";
-  const shade = ctx.createLinearGradient(0, atBottom ? H : 0, 0, atBottom ? H * 0.38 : H * 0.62);
-  shade.addColorStop(0, `rgba(12,10,9,${state.dim})`);
-  shade.addColorStop(1, "rgba(12,10,9,0)");
+  let shade;
+  if (state.pos === "middle") {
+    shade = ctx.createLinearGradient(0, H * 0.2, 0, H * 0.8);
+    shade.addColorStop(0, "rgba(12,10,9,0)");
+    shade.addColorStop(0.5, `rgba(12,10,9,${state.dim * 0.8})`);
+    shade.addColorStop(1, "rgba(12,10,9,0)");
+  } else {
+    const atBottom = state.pos === "bottom";
+    shade = ctx.createLinearGradient(0, atBottom ? H : 0, 0, atBottom ? H * 0.38 : H * 0.62);
+    shade.addColorStop(0, `rgba(12,10,9,${state.dim})`);
+    shade.addColorStop(1, "rgba(12,10,9,0)");
+  }
   ctx.fillStyle = shade;
   ctx.fillRect(0, 0, W, H);
 }
 
 /** Draws the two text lines and returns the base font size, which the footer reuses. */
 function drawText(W, H) {
-  const atBottom = state.pos === "bottom";
   const maxWidth = W * 0.84;
-  const base = Math.sqrt(W * H) * 0.047; // follows the poster's area, so every format gets text of similar weight
+  const base = Math.sqrt(W * H) * 0.047 * state.textScale; // follows the poster's area, so every format gets text of similar weight
   const sans = (s) => `300 ${s}px "DM Sans", sans-serif`;
   const serif = (s) => `italic 400 ${s}px "Instrument Serif", Georgia, serif`;
   const line1 = $("l1").value.toUpperCase().trim();
@@ -125,16 +134,18 @@ function drawText(W, H) {
   if (line1) size = Math.min(size, fitFontSize(line1, sans, maxWidth, base));
   if (line2) size = Math.min(size, fitFontSize(line2, serif, maxWidth, base * 1.12) / 1.12);
 
-  const bottomLine = H * 0.875;
-  const topLine = H * 0.115;
-  const y2 = atBottom ? bottomLine : topLine + size * 1.05;
-  const y1 = atBottom ? y2 - size * 1.02 : topLine;
+  // Large text must stay inside the poster, above the logo and credit.
+  const halfH = size * 1.035;
+  const floor = state.logo || state.credit.trim() ? 0.9 : 0.97;
+  const min = H * 0.03 + halfH;
+  const cy = Math.min(Math.max(TEXT_Y[state.pos] * H, min), Math.max(min, H * floor - halfH));
+  const y1 = cy - size * 0.285;
 
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = COLORS.text;
   if (line1) { ctx.font = sans(size); ctx.fillText(line1, W / 2, y1); }
-  if (line2) { ctx.font = serif(size * 1.12); ctx.fillText(line2, W / 2, atBottom ? y2 : y1 + size * 1.02); }
+  if (line2) { ctx.font = serif(size * 1.12); ctx.fillText(line2, W / 2, y1 + size * 1.02); }
   return size;
 }
 
@@ -345,22 +356,21 @@ function restoreOutput() {
   setOutput(saved);
 }
 
-function bindSegmented(id, key) {
-  $(id).addEventListener("click", (e) => {
-    const button = e.target.closest("button[data-v]");
-    if (!button) return;
-    $(id).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
-    if (key === "fmt") {
-      document.querySelector(".app").dataset.fmt = button.dataset.v; // the layout gives wide formats a wider preview
-      changeFormat(button.dataset.v);
-    } else {
-      state[key] = button.dataset.v;
-      draw();
-    }
-  });
-}
-bindSegmented("fmt", "fmt");
-bindSegmented("pos", "pos");
+$("fmt").addEventListener("click", (e) => {
+  const button = e.target.closest("button[data-v]");
+  if (!button) return;
+  $("fmt").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+  document.querySelector(".app").dataset.fmt = button.dataset.v; // the layout gives wide formats a wider preview
+  changeFormat(button.dataset.v);
+});
+
+$("pos").addEventListener("click", (e) => {
+  const button = e.target.closest("button[data-v]");
+  if (!button) return;
+  $("pos").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+  state.pos = button.dataset.v;
+  draw();
+});
 
 ["l1", "l2"].forEach((id) => $(id).addEventListener("input", () => draw()));
 let exampleIndex = 0;
@@ -378,6 +388,11 @@ $("dim").addEventListener("input", (e) => {
 $("zoom").addEventListener("input", (e) => {
   state.zoom = e.target.value / 100;
   $("zoomOut").textContent = e.target.value + "%";
+  draw();
+});
+$("textSize").addEventListener("input", (e) => {
+  state.textScale = e.target.value / 100;
+  $("textSizeOut").textContent = e.target.value + "%";
   draw();
 });
 $("reset").addEventListener("click", () => {
