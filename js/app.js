@@ -12,7 +12,6 @@ const EXAMPLES = [
   ["NO SHORTCUTS", "only the work"],
 ];
 const COLORS = { bg: "#0c0a09", text: "#f8f4f0" };
-const GITHUB_REPO = "";
 const LOGO_RATIO = 15 / 104;
 
 const state = {
@@ -22,7 +21,7 @@ const state = {
   zoom: 1,
   ox: 0,         // image offset, -1 to 1 of the available slack
   oy: 0,
-  logo: false,
+  logo: true,
   credit: "",
   tainted: false, // the image blocks canvas export (cross-origin without CORS)
   output: "png",  // what the main button does: png, jpeg, webp or copy
@@ -346,34 +345,6 @@ function restoreOutput() {
   setOutput(saved);
 }
 
-/* X's web intent cannot attach an image, so the poster is copied to the clipboard and the
-   composer opens with the text ready: the user pastes the image with Ctrl+V. If the browser
-   refuses the clipboard, the PNG is downloaded instead so it can be attached by hand. */
-async function shareOnX() {
-  if (state.tainted) { toast(TAINTED_MESSAGE); return; }
-
-  const words = [$("l1").value.trim(), $("l2").value.trim()].filter(Boolean).join(" ");
-  const params = new URLSearchParams({ text: `${words ? words + "\n\n" : ""}Made with Promethee lab` });
-  if (GITHUB_REPO) params.set("url", `https://github.com/${GITHUB_REPO}`);
-
-  // Both calls stay synchronous in the click handler, so the browser keeps the user gesture.
-  const copied = navigator.clipboard && window.ClipboardItem
-    ? navigator.clipboard.write([new ClipboardItem({ "image/png": renderPng() })]).then(() => true, () => false)
-    : Promise.resolve(false);
-  window.open(`https://x.com/intent/post?${params}`, "_blank", "noopener");
-
-  if (await copied) {
-    toast("Poster copied. Paste it into your post (Ctrl+V).");
-    return;
-  }
-  try {
-    saveBlob(await renderPng(), posterFilename());
-    toast("Poster downloaded. Attach it to your post.");
-  } catch {
-    toast("Could not prepare the poster for sharing.");
-  }
-}
-
 function bindSegmented(id, key) {
   $(id).addEventListener("click", (e) => {
     const button = e.target.closest("button[data-v]");
@@ -420,7 +391,6 @@ $("credit").addEventListener("input", (e) => { state.credit = e.target.value; dr
 $("logo").addEventListener("change", (e) => { state.logo = e.target.checked; draw(); });
 $("dl").addEventListener("click", exportImage);
 $("output").addEventListener("change", (e) => setOutput(e.target.value));
-$("share").addEventListener("click", shareOnX);
 
 function showSource(name) {
   document.querySelectorAll("#sources [role=tab]").forEach((tab) => {
@@ -496,23 +466,7 @@ canvas.addEventListener("pointermove", (e) => {
   canvas.addEventListener(type, () => { drag = null; canvas.classList.remove("drag"); })
 );
 
-const formatCount = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "k" : String(n));
-
-async function showStarCount() {
-  if (!GITHUB_REPO) return;
-  const link = $("stars");
-  link.href = `https://github.com/${GITHUB_REPO}`;
-  link.hidden = false;
-  try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`);
-    if (!res.ok) return; // repo not found or rate-limited: show the star without a number
-    const { stargazers_count } = await res.json();
-    $("starCount").textContent = formatCount(stargazers_count);
-  } catch { /* offline: same fallback */ }
-}
-
 const hasDefaults = DEFAULT_IMAGES.length > 0;
-showStarCount();
 restoreOutput();
 renderDefaults();
 showSource(hasDefaults ? "images" : "upload"); // with no default images, open on the tab that works
