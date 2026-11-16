@@ -25,6 +25,7 @@ const state = {
   logo: false,
   credit: "",
   tainted: false, // the image blocks canvas export (cross-origin without CORS)
+  output: "png",  // what the main button does: png, jpeg, webp or copy
   img: null,
 };
 
@@ -266,18 +267,26 @@ async function useLink(link) {
 
 const TAINTED_MESSAGE = "This image's site blocks export. Download it, then upload it.";
 
-async function renderPng() {
+const OUTPUTS = {
+  png: { type: "image/png", ext: "png", label: "PNG" },
+  jpeg: { type: "image/jpeg", ext: "jpg", label: "JPG", quality: 0.92 },
+  webp: { type: "image/webp", ext: "webp", label: "WebP", quality: 0.9 },
+};
+
+async function renderBlob(output) {
   try {
     draw();
-    return await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    return await new Promise((resolve) => canvas.toBlob(resolve, output.type, output.quality));
   } finally {
     draw();
   }
 }
 
-function posterFilename() {
+const renderPng = () => renderBlob(OUTPUTS.png);
+
+function posterFilename(ext = "png") {
   const slug = ($("l2").value || "promethee").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `poster-${slug}.png`;
+  return `poster-${slug}.${ext}`;
 }
 
 function saveBlob(blob, filename) {
@@ -288,15 +297,31 @@ function saveBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(link.href), 4000);
 }
 
-async function exportPng() {
+async function copyPoster() {
+  if (!(navigator.clipboard && window.ClipboardItem)) {
+    toast("This browser can't copy images. Download it instead.");
+    return;
+  }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": renderPng() })]);
+    toast("Poster copied to the clipboard");
+  } catch {
+    toast("Could not copy the poster. Download it instead.");
+  }
+}
+
+async function exportImage() {
   if (state.tainted) { toast(TAINTED_MESSAGE); return; }
+  if (state.output === "copy") { copyPoster(); return; } // no await before the clipboard call: it needs the click
+
+  const output = OUTPUTS[state.output];
   const button = $("dl");
   const original = button.innerHTML;
   button.disabled = true;
   button.textContent = "Preparing…";
   try {
-    const blob = await renderPng();
-    const filename = posterFilename();
+    const blob = await renderBlob(output);
+    const filename = posterFilename(output.ext);
     saveBlob(blob, filename);
     toast(`Downloaded ${filename}`);
   } catch {
@@ -304,6 +329,21 @@ async function exportPng() {
   }
   button.disabled = false;
   button.innerHTML = original;
+}
+
+function setOutput(value) {
+  if (!(value in OUTPUTS) && value !== "copy") value = "png";
+  state.output = value;
+  $("output").value = value;
+  $("dl").dataset.mode = value === "copy" ? "copy" : "download";
+  $("dlLabel").textContent = value === "copy" ? "Copy" : `Download ${OUTPUTS[value].label}`;
+  try { localStorage.setItem("poster-output", value); } catch { /* storage unavailable: the choice just isn't remembered */ }
+}
+
+function restoreOutput() {
+  let saved = "png";
+  try { saved = localStorage.getItem("poster-output") || "png"; } catch { /* same */ }
+  setOutput(saved);
 }
 
 /* X's web intent cannot attach an image, so the poster is copied to the clipboard and the
@@ -378,7 +418,8 @@ $("reset").addEventListener("click", () => {
 });
 $("credit").addEventListener("input", (e) => { state.credit = e.target.value; draw(); });
 $("logo").addEventListener("change", (e) => { state.logo = e.target.checked; draw(); });
-$("dl").addEventListener("click", exportPng);
+$("dl").addEventListener("click", exportImage);
+$("output").addEventListener("change", (e) => setOutput(e.target.value));
 $("share").addEventListener("click", shareOnX);
 
 function showSource(name) {
@@ -472,6 +513,7 @@ async function showStarCount() {
 
 const hasDefaults = DEFAULT_IMAGES.length > 0;
 showStarCount();
+restoreOutput();
 renderDefaults();
 showSource(hasDefaults ? "images" : "upload"); // with no default images, open on the tab that works
 setEmpty(hasDefaults ? "Pick an image to start." : "Upload an image or paste a link to start.");

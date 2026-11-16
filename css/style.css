@@ -616,9 +616,9 @@ input[type="range"] {
 }
 
 .topbar-actions .btn {
-  height: 36px;
-  padding: 0 14px;
-  font-size: 14px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
 }
 
 .btn.accent {
@@ -636,6 +636,47 @@ input[type="range"] {
   width: 14px;
   height: 14px;
   fill: currentColor;
+}
+
+.split {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5 5 6.5 8 3.5' fill='none' stroke='white' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  display: inline-flex;
+}
+
+.split #dl {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#output,
+#output:hover {
+  display: inline-block;
+  width: 28px;
+  padding: 0;
+  color: transparent;
+  border-left-color: rgba(255, 255, 255, 0.35);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  background-image: var(--chevron);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 9px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#output option {
+  color: var(--fg);
+  background: var(--raised);
+}
+
+.icon-copy,
+#dl[data-mode="copy"] .icon-download {
+  display: none;
+}
+
+#dl[data-mode="copy"] .icon-copy {
+  display: block;
 }
 
 /* ---------- Toast ---------- */
