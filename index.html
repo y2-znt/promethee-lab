@@ -115,8 +115,12 @@
             <span class="slider-head">Image zoom <output id="zoomOut">100%</output></span>
             <input id="zoom" type="range" min="100" max="250" value="100">
           </label>
-          <div class="row">
+          <div class="row spread">
             <button class="btn ghost" id="reset" type="button">Recenter image</button>
+            <button class="btn quiet" id="resetStyle" type="button">
+              <svg class="icon stroke" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.8-4.07"/><path d="M2.5 2.5v3h3"/></svg>
+              Reset to default style
+            </button>
           </div>
 
           <details class="more">

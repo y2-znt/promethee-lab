@@ -30,6 +30,9 @@ const state = {
   img: null,
 };
 
+const DEFAULT_STYLE = { pos: "bottom", textScale: 1, dim: 0.7, zoom: 1 };
+const isDefaultStyle = () => Object.keys(DEFAULT_STYLE).every((key) => state[key] === DEFAULT_STYLE[key]);
+
 const $ = (id) => document.getElementById(id);
 const canvas = $("cv");
 const ctx = canvas.getContext("2d");
@@ -183,6 +186,7 @@ function draw(dims = FORMATS[state.fmt]) {
   if (state.logo && logoImg.complete) drawLogo(W, H, size);
   drawCredit(W, H, size);
   $("empty").hidden = !!state.img;
+  $("resetStyle").disabled = isDefaultStyle();
 }
 
 const prefersReducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -402,6 +406,19 @@ $("reset").addEventListener("click", () => {
   $("zoomOut").textContent = "100%";
   draw();
 });
+function resetStyle() {
+  Object.assign(state, DEFAULT_STYLE);
+  $("dim").value = 70;
+  $("dimOut").textContent = "70%";
+  $("zoom").value = 100;
+  $("zoomOut").textContent = "100%";
+  $("textSize").value = 100;
+  $("textSizeOut").textContent = "100%";
+  $("pos").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === state.pos)));
+  draw();
+  toast("Style reset to default");
+}
+$("resetStyle").addEventListener("click", resetStyle);
 $("credit").addEventListener("input", (e) => { state.credit = e.target.value; draw(); });
 $("logo").addEventListener("change", (e) => { state.logo = e.target.checked; draw(); });
 $("dl").addEventListener("click", exportImage);

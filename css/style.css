@@ -610,6 +610,36 @@ input[type="range"] {
   fill: currentColor;
 }
 
+.icon.stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.btn.quiet {
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  color: var(--soft);
+  border-color: transparent;
+}
+
+.btn.quiet:hover {
+  color: var(--fg);
+}
+
+.btn.quiet:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn.quiet:disabled:hover {
+  color: var(--soft);
+  background: transparent;
+}
+
 .split {
   --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5 5 6.5 8 3.5' fill='none' stroke='white' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   display: inline-flex;
