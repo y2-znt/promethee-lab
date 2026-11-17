@@ -2,7 +2,7 @@
 
 ![Promethee Lab — two sample posters](assets/og-image.jpg)
 
-[Promethee Lab](https://promethee-lab.pages.dev/) is a free tool for making posters and wallpapers in the Promethee style. Built for the community.
+[Promethee Lab](https://promethee-lab.y2.engineer/) is a free tool for making posters and wallpapers in the Promethee style. Built for the community.
 
 - Pick a background from the gallery, upload your own, or paste an image URL.
 - Add your own words and adjust the text size, placement, and image crop.
