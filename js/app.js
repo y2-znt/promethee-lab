@@ -348,7 +348,7 @@ async function exportImage() {
 function setOutput(value) {
   if (!(value in OUTPUTS) && value !== "copy") value = "png";
   state.output = value;
-  $("output").value = value;
+  markOutputItem(value);
   $("dl").dataset.mode = value === "copy" ? "copy" : "download";
   $("dlLabel").textContent = value === "copy" ? "Copy" : `Download ${OUTPUTS[value].label}`;
   try { localStorage.setItem("poster-output", value); } catch { /* storage unavailable: the choice just isn't remembered */ }
@@ -422,7 +422,51 @@ $("resetStyle").addEventListener("click", resetStyle);
 $("credit").addEventListener("input", (e) => { state.credit = e.target.value; draw(); });
 $("logo").addEventListener("change", (e) => { state.logo = e.target.checked; draw(); });
 $("dl").addEventListener("click", exportImage);
-$("output").addEventListener("change", (e) => setOutput(e.target.value));
+/* Export format menu (replaces a native select): a menu button with arrow-key navigation */
+const outputItems = () => [...$("outputMenu").querySelectorAll("[role=menuitemradio]")];
+
+function markOutputItem(value) {
+  outputItems().forEach((item) => item.setAttribute("aria-checked", String(item.dataset.value === value)));
+}
+
+function openOutputMenu(focusLast = false) {
+  const items = outputItems();
+  const current = items.find((item) => item.getAttribute("aria-checked") === "true") || items[0];
+  $("outputMenu").hidden = false;
+  $("outputBtn").setAttribute("aria-expanded", "true");
+  (focusLast ? items[items.length - 1] : current).focus();
+}
+
+function closeOutputMenu(returnFocus = true) {
+  if ($("outputMenu").hidden) return;
+  $("outputMenu").hidden = true;
+  $("outputBtn").setAttribute("aria-expanded", "false");
+  if (returnFocus) $("outputBtn").focus();
+}
+
+$("outputBtn").addEventListener("click", () => ($("outputMenu").hidden ? openOutputMenu() : closeOutputMenu()));
+$("outputBtn").addEventListener("keydown", (e) => {
+  if (e.key === "ArrowDown") { e.preventDefault(); openOutputMenu(); }
+  if (e.key === "ArrowUp") { e.preventDefault(); openOutputMenu(true); }
+});
+$("outputMenu").addEventListener("click", (e) => {
+  const item = e.target.closest("[role=menuitemradio]");
+  if (!item) return;
+  setOutput(item.dataset.value);
+  closeOutputMenu();
+});
+$("outputMenu").addEventListener("keydown", (e) => {
+  const items = outputItems();
+  const i = items.indexOf(document.activeElement);
+  const move = (index) => { e.preventDefault(); items[(index + items.length) % items.length].focus(); };
+  if (e.key === "ArrowDown") move(i + 1);
+  else if (e.key === "ArrowUp") move(i - 1);
+  else if (e.key === "Home") move(0);
+  else if (e.key === "End") move(items.length - 1);
+  else if (e.key === "Escape") { e.preventDefault(); closeOutputMenu(); }
+  else if (e.key === "Tab") closeOutputMenu(false);
+});
+document.addEventListener("pointerdown", (e) => { if (!e.target.closest(".split")) closeOutputMenu(false); });
 
 function showSource(name) {
   document.querySelectorAll("#sources [role=tab]").forEach((tab) => {
