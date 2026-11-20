@@ -5,6 +5,7 @@ const FORMATS = {
   wall: [2560, 1440],
 };
 const EXAMPLES = [
+  ["WINNING", "is the only option"],
   ["ONE MORE", "focused hour"],
   ["DEEP WORK", "is the reward"],
   ["SHOW UP", "every single day"],
